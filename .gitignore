@@ -1,0 +1,16 @@
+# Built files
+dist/
+.astro/
+.vercel/
+
+# Installed packages
+node_modules/
+
+# Secrets stay out of this public repo: they live in Vercel's settings
+.env
+.env.*
+!.env.example
+
+# Logs and system files
+*.log
+.DS_Store
