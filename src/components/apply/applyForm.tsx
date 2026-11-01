@@ -43,7 +43,6 @@ const STEPS = [
 ];
 
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
-const TOO_MANY = "Too many tries. Please try again later.";
 const SPAM_CHECK_FAILED = "We couldn't check your browser. Refresh the page and try again.";
 
 type Screen = "waiting" | "alreadyApplied" | "tryLater";
@@ -150,7 +149,6 @@ export function ApplyForm() {
     const fromLms = data.fieldErrors ?? {};
     if (showFirstError(fields, fromLms)) return;
     if (status === 422) setProblem(SPAM_CHECK_FAILED);
-    else if (status === 429) setProblem(TOO_MANY);
     else setProblem(status === 400 && data.message ? data.message : SOMETHING_WRONG);
   }
 

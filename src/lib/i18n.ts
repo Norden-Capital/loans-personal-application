@@ -21,7 +21,6 @@ const FR: Record<string, string> = {
   "Try again": "Réessayer",
   "We couldn't check your browser. Refresh the page and try again.": "Nous n'avons pas pu vérifier votre navigateur. Actualisez la page et réessayez.",
   "Something went wrong. Please try again.": "Une erreur est survenue. Veuillez réessayer.",
-  "Too many tries. Please try again later.": "Trop d'essais. Réessayez plus tard.",
   "Please fix the marked fields.": "Veuillez corriger les champs indiqués.",
   "This website is not set up to take applications.": "Ce site n'accepte pas encore de demandes.",
   "Next": "Suivant",

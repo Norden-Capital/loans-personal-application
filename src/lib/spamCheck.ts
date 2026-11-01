@@ -3,7 +3,7 @@ const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 /**
  * Asks Cloudflare if the browser's pass is real. No pass or a bad pass is refused.
  * If Cloudflare itself can't be reached, the person is let through: a bot can't cause
- * that, an outage shouldn't lose real leads, and the LMS's rate limit still applies.
+ * that, and an outage shouldn't lose real leads.
  */
 export async function passesSpamCheck(pass: unknown, ip: string): Promise<boolean> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
