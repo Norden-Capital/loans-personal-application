@@ -6,7 +6,6 @@ import { LanguageSwitch } from "@/components/apply/languageSwitch";
 import { LogoMark } from "@/components/apply/logoMark";
 import { PhoneField } from "@/components/apply/phoneField";
 import { Chips, Choice, Field, TextInput } from "@/components/apply/pieces";
-import { useSpamCheck } from "@/components/apply/useSpamCheck";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { brandForHost } from "@/lib/brands";
@@ -43,7 +42,6 @@ const STEPS = [
 ];
 
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
-const SPAM_CHECK_FAILED = "We couldn't check your browser. Refresh the page and try again.";
 
 type Screen = "waiting" | "alreadyApplied" | "tryLater";
 
@@ -81,8 +79,6 @@ export function ApplyForm() {
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen | null>(null);
-
-  const spamCheck = useSpamCheck(lang);
 
   const say = (text: string) => translate(lang, text);
 
@@ -148,21 +144,12 @@ export function ApplyForm() {
   function showRefusal(status: number, data: { message?: string; fieldErrors?: Record<string, string> }, fields: string[]) {
     const fromLms = data.fieldErrors ?? {};
     if (showFirstError(fields, fromLms)) return;
-    if (status === 422) setProblem(SPAM_CHECK_FAILED);
-    else setProblem(status === 400 && data.message ? data.message : SOMETHING_WRONG);
+    setProblem(status === 400 && data.message ? data.message : SOMETHING_WRONG);
   }
 
   /** Saves step 1. Returns the token for step 2, or null if it couldn't be saved. */
   async function saveStepOne(): Promise<string | null> {
-    const pass = await spamCheck.takePass();
-    if (!pass) {
-      setProblem(SPAM_CHECK_FAILED);
-      return null;
-    }
-    const { ok, status, data } = await post("/api/apply", {
-      ...stepOneRequest({ stepToken, amount, values, phone, lang }),
-      spamCheck: pass,
-    });
+    const { ok, status, data } = await post("/api/apply", stepOneRequest({ stepToken, amount, values, phone, lang }));
     if (!ok || !data.stepToken) {
       showRefusal(status, data, STEP_ONE_FIELDS);
       return null;
@@ -443,9 +430,6 @@ export function ApplyForm() {
               </Button>
             </div>
           ) : null}
-
-          {/* Stays on the page through both steps: a language switch on step 2 saves step 1 again. */}
-          <div className="spam-check" ref={spamCheck.box} />
 
           {problem ? (
             <p className="problem" role="alert">

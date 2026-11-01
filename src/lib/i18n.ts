@@ -19,7 +19,6 @@ const FR: Record<string, string> = {
   "We can't finish this right now.": "Nous ne pouvons pas terminer pour le moment.",
   "Your answers are saved. Please try again in a few minutes.": "Vos réponses sont enregistrées. Réessayez dans quelques minutes.",
   "Try again": "Réessayer",
-  "We couldn't check your browser. Refresh the page and try again.": "Nous n'avons pas pu vérifier votre navigateur. Actualisez la page et réessayez.",
   "Something went wrong. Please try again.": "Une erreur est survenue. Veuillez réessayer.",
   "Please fix the marked fields.": "Veuillez corriger les champs indiqués.",
   "This website is not set up to take applications.": "Ce site n'accepte pas encore de demandes.",

@@ -272,7 +272,6 @@ html[lang="fr"] [data-only="en"], html:not([lang="fr"]) [data-only="fr"] { displ
 .nav .next:hover { background: var(--brand-primary-hover, #1f3f34); }
 .reassure { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--muted-foreground); }
 
-.spam-check.showing { margin-top: 16px; }
 .problem { margin-top: 16px; color: var(--destructive); font-size: 13px; }
 .waiting-icon { width: 32px; height: 32px; margin-top: 8px; color: var(--primary); }
 

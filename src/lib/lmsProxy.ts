@@ -26,14 +26,14 @@ function fromOurPage(context: APIContext): boolean {
  * Passes one step on to the LMS. The shared secret stays here on the server, and
  * the browser only gets back the fields named in `keep`.
  *
- * @param change fills in what the browser can't be trusted to say, or returns null to refuse
+ * @param change fills in what the browser can't be trusted to say
  */
 export async function sendToLms(
   context: APIContext,
   path: string,
   keep: string[],
   timeoutMs: number,
-  change: (body: Record<string, unknown>) => Promise<Record<string, unknown> | null> = async (body) => body,
+  change: (body: Record<string, unknown>) => Record<string, unknown> = (body) => body,
 ): Promise<Response> {
   if (!fromOurPage(context)) return reply(403, {});
 
@@ -45,9 +45,6 @@ export async function sendToLms(
   } catch {
     return reply(400, {});
   }
-
-  const changed = await change(body);
-  if (!changed) return reply(422, {});
 
   const { LMS_URL, PROXY_SECRET } = process.env;
   if (!LMS_URL || !PROXY_SECRET) {
@@ -63,7 +60,7 @@ export async function sendToLms(
         "x-proxy-secret": PROXY_SECRET,
         "x-client-ip": context.clientAddress,
       },
-      body: JSON.stringify(changed),
+      body: JSON.stringify(change(body)),
       signal: AbortSignal.timeout(timeoutMs),
     });
     const data = await answer.json().catch(() => ({}));
