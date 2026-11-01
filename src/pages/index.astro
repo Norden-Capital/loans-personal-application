@@ -1,6 +1,10 @@
 ---
-// A placeholder, so the domain and hosting can be checked before the form exists.
-// It has no fields on purpose: nobody can enter personal details here yet.
+import { ApplyForm } from "@/components/apply/applyForm";
+import { LogoMark } from "@/components/apply/logoMark";
+import { BRANDS } from "@/lib/brands";
+import "@/styles/global.css";
+
+const looks = BRANDS.map(({ name, domains, theme }) => ({ name, domains, theme }));
 ---
 
 <!doctype html>
@@ -9,35 +13,46 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Coming soon</title>
-    <style>
-      body {
-        box-sizing: border-box;
-        margin: 0;
-        min-height: 100svh;
-        display: grid;
-        place-items: center;
-        padding: 16px;
-        background: #f9f7f2;
-        color: #2b2a25;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        text-align: center;
-      }
-      h1 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 600;
-      }
-      p {
-        margin: 8px 0 0;
-        color: #6f6c60;
-      }
-    </style>
+    <title>Apply</title>
+    <script is:inline define:vars={{ looks }}>
+      // Runs before the page paints, so the right brand and language show from the start.
+      const host = location.hostname.toLowerCase();
+      const brand =
+        looks.find((b) => b.domains.some((d) => host === d || host.endsWith("." + d))) ?? looks[0];
+      const root = document.documentElement;
+      const t = brand.theme;
+      root.style.setProperty("--brand-primary", t.primary);
+      root.style.setProperty("--brand-primary-hover", t.primaryHover);
+      root.style.setProperty("--brand-primary-tint", t.primaryTint);
+      root.style.setProperty("--brand-title-accent", t.titleAccent);
+      root.style.setProperty("--brand-step", t.step);
+      root.style.setProperty("--brand-background", t.background);
+      root.style.setProperty("--brand-field-radius", t.fieldRadius);
+      root.style.setProperty("--brand-font", t.font);
+      document.title = "Apply · " + brand.name;
+      if (new URLSearchParams(location.search).get("lang") === "fr") root.lang = "fr";
+    </script>
   </head>
   <body>
-    <main>
-      <h1>Coming soon</h1>
-      <p>Bientôt disponible</p>
-    </main>
+    <div class="shell">
+      <aside class="hero">
+        <!-- Phones don't show the photo, so they don't download it either. -->
+        <picture>
+          <source media="(max-width: 999px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACw=" />
+          <img class="art" src="/left-panel-photo.webp" alt="" width="1024" height="1536" />
+        </picture>
+        <LogoMark />
+        <p class="eyebrow">
+          <span data-only="en">Personal loan</span>
+          <span data-only="fr">Prêt personnel</span>
+        </p>
+        <h2>
+          <span data-only="en">Start Your<span>Application</span></span>
+          <span data-only="fr">Commencez votre<span>demande</span></span>
+        </h2>
+      </aside>
+
+      <ApplyForm client:load />
+    </div>
   </body>
 </html>

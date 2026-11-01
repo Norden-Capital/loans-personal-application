@@ -2,9 +2,18 @@
 import { defineConfig } from "astro/config";
 import vercel from "@astrojs/vercel";
 
-// Pages are static by default, which keeps them fast. The server route that
-// talks to the LMS will opt out with `export const prerender = false`.
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
+
+// Pages are static by default, which keeps them fast. The server routes that
+// talk to the LMS opt out with `export const prerender = false`.
 export default defineConfig({
   site: "https://apply.needaloantoday.online",
-  adapter: vercel(),
+  // Step 2 waits for LeadScout, so it needs longer than Vercel's default.
+  adapter: vercel({ maxDuration: 60 }),
+  integrations: [react()],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
