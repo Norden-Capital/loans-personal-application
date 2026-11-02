@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Loader2, Lock } from "lucide-react";
+import { ArrowRight, Check, CircleCheck, Clock, Loader2, Lock } from "lucide-react";
 
 import { AmountBox } from "@/components/apply/amountBox";
 import { LanguageSwitch } from "@/components/apply/languageSwitch";
+import { LegalSheet, type LegalDoc } from "@/components/apply/legalSheet";
 import { LogoMark } from "@/components/apply/logoMark";
 import { PhoneField } from "@/components/apply/phoneField";
-import { Chips, Choice, Field, TextInput } from "@/components/apply/pieces";
+import { Chips, Choice, CreditScorePicker, DateInput, Field, MoneyInput, RadioRow, TextInput } from "@/components/apply/pieces";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { brandForHost } from "@/lib/brands";
@@ -43,6 +44,13 @@ const STEPS = [
   { name: "Bank check", desc: "Connect your bank securely" },
 ];
 
+/** One box for SMS, sharing with partners and offers. {brand} becomes the brand's name. Shown cut to two lines until "Show more". */
+const CONSENT = [
+  "I consent to receive SMS communications from {brand} regarding my loan application, contract, and funding notifications. I acknowledge that providing this consent is necessary to complete my loan application and to receive funds via e-Transfer.",
+  "In addition, I consent that {brand} may share my application and IBV (instant banking verification) with its authorized partners.",
+  "Lastly, I agree to receive promotional SMS messages and emails from {brand} and its authorized partners. I understand that I may withdraw my consent or unsubscribe from promotional communications at any time.",
+];
+
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
 
 type Screen = "waiting" | "alreadyApplied" | "tryLater";
@@ -69,13 +77,25 @@ async function post(url: string, body: unknown) {
 export function ApplyForm() {
   const [lang, setLang] = useState<Lang>("en");
   const [logo, setLogo] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState("");
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState(1500);
-  const [values, setValues] = useState<Values>({});
+  // The Yes/No questions start on the most common answer.
+  const [values, setValues] = useState<Values>({ directDeposit: "yes", ownHome: "no" });
+  const [ready, setReady] = useState(false);
+
+  useEffect(countVisit, []);
+
+  // The page loader (in index.astro) stays until this is set.
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-ready", ready);
+  }, [ready]);
+
   const [phone, setPhone] = useState<PhoneState>({ status: "empty", national: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showMore, setShowMore] = useState(false);
-  const [dates, setDates] = useState<{ max?: string; min?: string }>({});
+  const [legal, setLegal] = useState<LegalDoc | null>(null);
+  const [dates, setDates] = useState<{ max?: string; min?: string; today?: string; soon?: string }>({});
   const [stepToken, setStepToken] = useState<string | null>(null);
   const [savedLang, setSavedLang] = useState<Lang | null>(null);
   const [sending, setSending] = useState(false);
@@ -88,11 +108,12 @@ export function ApplyForm() {
   useBrowserLayoutEffect(() => {
     rememberTracking();
     if (document.documentElement.lang === "fr") setLang("fr");
-    setLogo(brandForHost(location.hostname).logo);
-    setDates({ max: yearsAgo(18), min: yearsAgo(99) });
+    const brand = brandForHost(location.hostname);
+    setLogo(brand.logo);
+    setBrandName(brand.name);
+    setReady(true);
+    setDates({ max: yearsAgo(18), min: yearsAgo(99), today: yearsAgo(0), soon: daysAhead(60) });
   }, []);
-
-  useEffect(countVisit, []);
 
   function switchLanguage(next: Lang) {
     document.documentElement.lang = next;
@@ -128,7 +149,7 @@ export function ApplyForm() {
   const fill = useMemo(() => {
     const share = (fields: string[]) =>
       (fields.filter((field) => !problemWith(field, values, phone)).length / fields.length) * 100;
-    return [share(STEP_ONE_FIELDS), share(stepTwoFields(values)), 0];
+    return [share(STEP_ONE_FIELDS), share(stepTwoOrder(values)), 0];
   }, [values, phone]);
 
   function go(next: number) {
@@ -177,14 +198,14 @@ export function ApplyForm() {
     } else if (status === 400) {
       setScreen(null);
       go(2);
-      showRefusal(status, data, stepTwoFields(values));
+      showRefusal(status, data, stepTwoOrder(values));
     } else {
       setScreen("tryLater");
     }
   }
 
   async function goNext() {
-    const fields = step === 1 ? STEP_ONE_FIELDS : stepTwoFields(values);
+    const fields = step === 1 ? STEP_ONE_FIELDS : stepTwoOrder(values);
     const found: Record<string, string> = {};
     for (const field of fields) {
       const fieldProblem = problemWith(field, values, phone);
@@ -202,6 +223,13 @@ export function ApplyForm() {
       if (token) await finish(token);
     }
     setSending(false);
+  }
+
+  /** The links sit inside the box's label, so the click must not tick it. */
+  function openLegal(event: React.MouseEvent, doc: LegalDoc) {
+    event.preventDefault();
+    event.stopPropagation();
+    setLegal(doc);
   }
 
   const shared = { values, errors, set, say };
@@ -222,7 +250,7 @@ export function ApplyForm() {
         </div>
       </div>
 
-      <main className="inner main">
+      <main className={step === 3 ? "inner main end" : "inner main"}>
         <ol className="stepper">
           {STEPS.map((item, index) => {
             const number = index + 1;
@@ -244,6 +272,7 @@ export function ApplyForm() {
         </ol>
 
         <div className="head">
+          {screen ? <ScreenIcon screen={screen} /> : null}
           <h1>{say(title[0])}</h1>
           <p>{say(title[1])}</p>
         </div>
@@ -269,7 +298,7 @@ export function ApplyForm() {
                   <PhoneField lang={lang} say={say} invalid={Boolean(errors.phone)} onChange={changePhone} />
                 </Field>
                 <Field name="birthDate" label="Date of birth" error={errors.birthDate} say={say}>
-                  <TextInput name="birthDate" type="date" autoComplete="bday" max={dates.max} min={dates.min} {...shared} />
+                  <DateInput name="birthDate" min={dates.min} max={dates.max} lang={lang} {...shared} />
                 </Field>
               </div>
             </div>
@@ -299,21 +328,22 @@ export function ApplyForm() {
                     checked={values.consent === "yes"}
                     onCheckedChange={(checked) => set("consent", checked ? "yes" : "")}
                   />
-                  <span>
-                    {say("I agree that my application and bank check (IBV) are shared with lenders to find me a loan.")}{" "}
-                    {showMore ? say("I can be contacted by email, phone and text about my application.") + " " : null}
-                    <button
-                      type="button"
-                      className="linkbtn"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        setShowMore(!showMore);
-                      }}
-                    >
-                      {say(showMore ? "Show less" : "Show more")}
-                    </button>
+                  <span id="consent-text" className={showMore ? "consent-text" : "consent-text clamp"}>
+                    {CONSENT.map((part) => (
+                      <span key={part}>{say(part).replaceAll("{brand}", brandName)}</span>
+                    ))}
                   </span>
                 </label>
+                {/* Outside the label, so opening the text doesn't tick the box. */}
+                <button
+                  type="button"
+                  className="linkbtn consent-more"
+                  aria-expanded={showMore}
+                  aria-controls="consent-text"
+                  onClick={() => setShowMore(!showMore)}
+                >
+                  {say(showMore ? "Show less" : "Show more")}
+                </button>
                 {errors.consent ? <p className="err">{say(errors.consent)}</p> : null}
               </div>
               <div className={errors.terms ? "field bad" : "field"} data-field="terms">
@@ -323,23 +353,20 @@ export function ApplyForm() {
                     onCheckedChange={(checked) => set("terms", checked ? "yes" : "")}
                   />
                   <span>
-                    {say("I accept the")} <a href="#">{say("Terms")}</a> {say("and")}{" "}
-                    <a href="#">{say("Privacy Policy")}</a>.
+                    {say("I accept the")} <a href="#terms" onClick={(event) => openLegal(event, "terms")}>{say("Terms")}</a> {say("and")}{" "}
+                    <a href="#privacy" onClick={(event) => openLegal(event, "privacy")}>{say("Privacy Policy")}</a>.
                   </span>
                 </label>
                 {errors.terms ? <p className="err">{say(errors.terms)}</p> : null}
               </div>
-              <label className="check">
-                <Checkbox
-                  checked={values.optIn === "yes"}
-                  onCheckedChange={(checked) => set("optIn", checked ? "yes" : "")}
-                />
-                <span>{say("Send me offers by email and text. (Optional)")}</span>
-              </label>
             </div>
           </section>
 
           <section hidden={step !== 2}>
+            {/* Step 2 opens with the credit score. */}
+            <Field name="creditScore" label="Your credit score" error={errors.creditScore} say={say} className="score-first" asGroup>
+              <CreditScorePicker name="creditScore" label="Your credit score" options={CREDIT_SCORES} values={values} set={set} say={say} />
+            </Field>
             <p className="section-title">{say("Employment")}</p>
             <Field name="incomeType" label="What is your current employment situation?" error={errors.incomeType} say={say}>
               <Choice name="incomeType" options={INCOME_TYPES} {...shared} />
@@ -350,14 +377,14 @@ export function ApplyForm() {
                 <Field name="employerName" label="Employer" error={errors.employerName} say={say}>
                   <TextInput name="employerName" placeholder="Enter your employer" {...shared} />
                 </Field>
-                <Field name="jobTitle" label="Job title" error={errors.jobTitle} say={say}>
+                <Field name="jobTitle" label="Job title" error={errors.jobTitle} say={say} className="half">
                   <TextInput name="jobTitle" placeholder="Enter your job title" {...shared} />
                 </Field>
-                <Field name="employedMonths" label="Time at this job" error={errors.employedMonths} say={say}>
+                <Field name="employedMonths" label="Time at this job" error={errors.employedMonths} say={say} className="half">
                   <Choice name="employedMonths" options={JOB_MONTHS} {...shared} />
                 </Field>
                 <Field name="payDate1" label="Next pay date" error={errors.payDate1} say={say}>
-                  <TextInput name="payDate1" type="date" {...shared} />
+                  <DateInput name="payDate1" min={dates.today} max={dates.soon} start={dates.today} lang={lang} {...shared} />
                 </Field>
                 <Field name="payFrequency" label="How often do you get paid?" error={errors.payFrequency} say={say} className="full" asGroup>
                   <Chips name="payFrequency" label="How often do you get paid?" options={PAY_FREQUENCY} columns={4} values={values} set={set} say={say} />
@@ -367,39 +394,40 @@ export function ApplyForm() {
 
             <div className="section">
               <p className="section-title">{say("Income")}</p>
-              <div className="fields">
-                <Field name="monthlyIncome" label="Monthly income (before tax)" error={errors.monthlyIncome} say={say}>
-                  <TextInput name="monthlyIncome" type="number" inputMode="numeric" min={0} money {...shared} />
+              <div className="fields pair">
+                <Field name="monthlyIncome" label="Monthly income" error={errors.monthlyIncome} say={say}>
+                  <MoneyInput name="monthlyIncome" placeholder="Before tax" lang={lang} {...shared} />
                 </Field>
-                <Field name="directDeposit" label="Is your pay sent to your bank?" error={errors.directDeposit} say={say} asGroup>
-                  <Chips name="directDeposit" label="Is your pay sent to your bank?" options={YES_NO} columns={2} values={values} set={set} say={say} />
+                <Field name="directDeposit" label="Direct deposit?" error={errors.directDeposit} say={say} asGroup>
+                  <RadioRow name="directDeposit" label="Direct deposit?" options={YES_NO} values={values} set={set} say={say} />
                 </Field>
               </div>
             </div>
 
             <div className="section">
               <p className="section-title">{say("Home")}</p>
-              <div className="fields">
+              {/* Own home, time here and rent share one row on a computer. */}
+              <div className="fields three">
                 <Field name="ownHome" label="Do you own your home?" error={errors.ownHome} say={say} asGroup>
-                  <Chips name="ownHome" label="Do you own your home?" options={YES_NO} columns={2} values={values} set={set} say={say} />
+                  <RadioRow name="ownHome" label="Do you own your home?" options={YES_NO} values={values} set={set} say={say} />
                 </Field>
                 <Field name="timeAtAddress" label="Time at this address" error={errors.timeAtAddress} say={say}>
                   <Choice name="timeAtAddress" options={ADDRESS_MONTHS} {...shared} />
                 </Field>
-                <Field name="rentMortgagePayment" label="Monthly rent or mortgage" error={errors.rentMortgagePayment} say={say} className="full">
-                  <TextInput name="rentMortgagePayment" type="number" inputMode="numeric" min={0} placeholder="0" money {...shared} />
+                <Field name="rentMortgagePayment" label="Monthly rent or mortgage" error={errors.rentMortgagePayment} say={say}>
+                  <MoneyInput name="rentMortgagePayment" placeholder="0" lang={lang} {...shared} />
                 </Field>
-                {isOwner(values) ? (
-                  <>
+              </div>
+              {isOwner(values) ? (
+                <div className="fields owner">
                     <Field name="propertyValue" label="Home value" error={errors.propertyValue} say={say}>
-                      <TextInput name="propertyValue" type="number" inputMode="numeric" min={0} money {...shared} />
+                      <MoneyInput name="propertyValue" placeholder="0" lang={lang} {...shared} />
                     </Field>
                     <Field name="propertyMortgage" label="Mortgage left" error={errors.propertyMortgage} say={say}>
-                      <TextInput name="propertyMortgage" type="number" inputMode="numeric" min={0} placeholder="0" money {...shared} />
+                      <MoneyInput name="propertyMortgage" placeholder="0" lang={lang} {...shared} />
                     </Field>
-                  </>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="section">
@@ -409,24 +437,15 @@ export function ApplyForm() {
                   <Choice name="purpose" options={PURPOSES} {...shared} />
                 </Field>
                 <Field name="unsecuredDebtAmount" label="Credit card and loan debt" error={errors.unsecuredDebtAmount} say={say}>
-                  <TextInput name="unsecuredDebtAmount" type="number" inputMode="numeric" min={0} placeholder="0" money {...shared} />
+                  <MoneyInput name="unsecuredDebtAmount" placeholder="0" lang={lang} {...shared} />
                 </Field>
                 <Field name="financialSituation" label="Are you in bankruptcy or a proposal?" error={errors.financialSituation} say={say} className="full">
                   <Choice name="financialSituation" options={FINANCIAL_SITUATIONS} {...shared} />
                 </Field>
-                <Field name="creditScore" label="Your credit score" error={errors.creditScore} say={say} className="full" asGroup>
-                  <Chips name="creditScore" label="Your credit score" options={CREDIT_SCORES} columns={4} values={values} set={set} say={say} />
-                </Field>
               </div>
             </div>
 
-            <p className="agree">
-              {say("By continuing, you agree to our")} <a href="#">{say("Terms")}</a> {say("and")}{" "}
-              <a href="#">{say("Privacy Policy")}</a>.
-            </p>
           </section>
-
-          {screen === "waiting" ? <Loader2 className="waiting-icon animate-spin" aria-hidden /> : null}
 
           {screen === "tryLater" && stepToken ? (
             <div className="nav">
@@ -472,6 +491,29 @@ export function ApplyForm() {
           ) : null}
         </form>
       </main>
+      <LegalSheet doc={legal} onClose={() => setLegal(null)} say={say} />
     </div>
+  );
+}
+
+/** Step 2's questions in screen order: the credit score is first, so its error is found first. */
+function stepTwoOrder(values: Values) {
+  return ["creditScore", ...stepTwoFields(values).filter((field) => field !== "creditScore")];
+}
+
+/** A date this many days from today, as "2026-12-31". */
+function daysAhead(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+/** Step 3's picture above its title. */
+function ScreenIcon({ screen }: { screen: Screen }) {
+  const Icon = screen === "waiting" ? Loader2 : screen === "alreadyApplied" ? CircleCheck : Clock;
+  return (
+    <span className={`screen-icon ${screen}`} aria-hidden>
+      <Icon className={screen === "waiting" ? "animate-spin" : undefined} />
+    </span>
   );
 }

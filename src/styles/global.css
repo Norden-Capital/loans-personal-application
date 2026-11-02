@@ -317,3 +317,206 @@ html[lang="fr"] [data-only="en"], html:not([lang="fr"]) [data-only="fr"] { displ
   .nav [data-slot="button"] { flex: none; width: 100%; }
   .reassure { justify-content: center; }
 }
+/* The consent text: cut to two lines until "Show more". */
+.consent-text { display: grid; gap: 6px; }
+.consent-text.clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.consent-text.clamp > span { display: block; }
+.consent-more { justify-self: start; margin: 2px 0 0 26px; font-size: 13px; }
+
+/* Terms and Privacy sheet. */
+.legal-sheet { font-family: var(--brand-font); }
+.legal-head { padding: 20px 52px 12px 20px; border-bottom: 1px solid var(--soft-line); }
+.legal-title { font-size: 18px; font-weight: 600; }
+.legal-body { flex: 1; overflow-y: auto; padding: 4px 20px 20px; font-size: 14px; line-height: 1.6; color: #4b4940; }
+
+/* ── Round 2 of UI changes ── */
+
+/* The sheet hides the scrollbar; keep its space so the page doesn't jump. */
+html { scrollbar-gutter: stable; }
+
+/* Taller step indicator. */
+.stepper { padding: 20px 22px; margin-bottom: 24px; }
+.stepper li { padding-bottom: 16px; }
+.stepper .num { width: 38px; height: 38px; font-size: 16px; }
+.stepper .desc { margin-top: 4px; }
+
+/* More room around the fields, so they are less wide. */
+.main > .head, .main > form, .main > .form-skeleton { padding-left: 56px; padding-right: 56px; }
+@media (max-width: 1199px) { .main > .head, .main > form, .main > .form-skeleton { padding-left: 32px; padding-right: 32px; } }
+
+/* Step 3: everything in the middle. */
+.main.end > .head { text-align: center; padding-top: 40px; display: flex; flex-direction: column; align-items: center; }
+.main.end .nav { justify-content: center; }
+.screen-icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 16px; border-radius: 50%;
+  background: var(--brand-primary-tint, #e6eee8); color: var(--primary); }
+.screen-icon svg { width: 30px; height: 30px; }
+.screen-icon.tryLater { background: #f6ecd9; color: #9a6a1c; }
+
+/* First load: one loader in the middle of the page, in the brand's colors, until the form,
+   logo and photo are ready. */
+.page-loader { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--background);
+  opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; }
+html:not([data-ready]) .page-loader { opacity: 1; visibility: visible; }
+/* The photo only shows on a computer, so only there the loader waits for it. */
+@media (min-width: 1000px) { html:has(.hero .art:not([data-in])) .page-loader { opacity: 1; visibility: visible; } }
+.page-loader span { width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--brand-primary-tint, #e6eee8);
+  border-top-color: var(--primary); animation: page-spin .8s linear infinite; }
+@keyframes page-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .page-loader span { animation-duration: 2s; } }
+
+/* Yes / No radios. */
+.radio-row { display: flex; gap: 28px; min-height: 42px; align-items: center; }
+.radio-row label { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; position: relative; }
+.radio-row input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.radio-row .dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #bdb8a6; background: #fff; display: grid; place-items: center; transition: border-color .15s; }
+.radio-row .dot::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); transform: scale(0); transition: transform .15s; }
+.radio-row input:checked + .dot { border-color: var(--primary); }
+.radio-row input:checked + .dot::after { transform: scale(1); }
+.radio-row input:focus-visible + .dot { box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.field.bad .radio-row .dot { border-color: #e6b3ad; }
+
+/* Credit score cards. */
+.score-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.score-pick label { position: relative; display: block; }
+.score-pick input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.score-pick .card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; height: 100%; padding: 12px 14px;
+  background: #fff; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: all .15s; }
+.score-pick .card:hover { border-color: #bdb8a6; }
+.score-pick .meter { display: flex; align-items: flex-end; gap: 3px; height: 18px; font-weight: 700; color: var(--muted-foreground); }
+.score-pick .meter i { width: 6px; border-radius: 2px; background: var(--soft-line); }
+.score-pick .meter i:nth-child(1) { height: 8px; }
+.score-pick .meter i:nth-child(2) { height: 13px; }
+.score-pick .meter i:nth-child(3) { height: 18px; }
+.score-pick [data-level="3"] .meter i.on { background: #2f8a5b; }
+.score-pick [data-level="2"] .meter i.on { background: #d39b2a; }
+.score-pick [data-level="1"] .meter i.on { background: #c8553d; }
+.score-pick .name { font-weight: 600; font-size: 14px; }
+.score-pick small { font-size: 12px; color: var(--muted-foreground); }
+.score-pick input:checked + .card { border-color: var(--primary); background: var(--brand-primary-tint, #e6eee8); box-shadow: 0 0 0 1px var(--primary); }
+.score-pick input:focus-visible + .card { box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.field.bad .score-pick .card { border-color: #e6b3ad; }
+
+@media (max-width: 600px) {
+  .stepper { padding: 16px 10px; }
+  .stepper li { padding-bottom: 12px; }
+  .stepper .num { width: 32px; height: 32px; font-size: 15px; }
+  .main > .head, .main > form, .main > .form-skeleton { padding-left: 12px; padding-right: 12px; }
+  .score-pick { grid-template-columns: repeat(2, 1fr); }
+  .main.end > .head { padding-top: 24px; }
+}
+
+/* shadcn dropdowns, at the form's size and corners. */
+.field-select[data-slot="select-trigger"] { width: 100%; height: 42px; padding: 0 14px 0 16px; border-radius: var(--brand-field-radius, 999px);
+  background: #fff; font-size: 14px; cursor: pointer; }
+.field-select[data-slot="select-trigger"]:focus-visible, .field-select[data-popup-open] { border-color: var(--primary); box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.field-select[aria-invalid="true"] { border-color: var(--destructive); }
+.field-select-list { min-width: var(--anchor-width); max-height: min(320px, var(--available-height)); border-radius: 14px; padding: 4px; font-family: var(--brand-font); }
+.field-select-list [data-slot="select-item"] { min-height: 36px; padding: 6px 10px; border-radius: 10px; font-size: 14px; cursor: pointer; }
+.field-select-list [data-slot="select-item"][data-highlighted] { background: var(--brand-primary-tint, #e6eee8); color: var(--foreground); }
+
+/* shadcn date picker. */
+.date-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 42px; padding: 0 14px 0 16px;
+  border: 1px solid var(--input); border-radius: var(--brand-field-radius, 999px); background: #fff; font-size: 14px; text-align: left; cursor: pointer; transition: border-color .15s; }
+.date-trigger.empty span { color: var(--muted-foreground); }
+.date-trigger svg { width: 16px; height: 16px; flex: none; color: var(--muted-foreground); }
+.date-trigger:focus-visible, .date-trigger[data-popup-open] { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.date-trigger[aria-invalid="true"] { border-color: var(--destructive); }
+.date-pop { width: auto; padding: 6px; border-radius: 16px; font-family: var(--brand-font); }
+.date-pop [data-selected-single="true"] { background: var(--primary); color: #fff; }
+
+/* Money fields: they look like the other fields, with a light $ inside. Commas, no arrows. */
+.money-box { position: relative; display: flex; align-items: center; height: 42px; background: #fff; border: 1px solid var(--input);
+  border-radius: var(--brand-field-radius, 999px); transition: border-color .15s, box-shadow .15s; }
+.money-box .cur { padding-left: 16px; color: var(--muted-foreground); font-size: 14px; }
+.money-box input { flex: 1; min-width: 0; height: 100%; padding: 0 16px 0 6px; border: 0; outline: none; background: transparent; font-size: 14px; font-variant-numeric: tabular-nums; }
+.money-box input::placeholder { color: var(--muted-foreground); }
+.money-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.money-box.bad { border-color: var(--destructive); }
+
+/* Home: three questions in one row, lined up at the bottom. */
+.fields.three { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); align-items: end; column-gap: 16px; }
+.fields.three .radio-row { gap: 20px; padding-right: 8px; }
+.fields.owner { margin-top: 12px; }
+@media (max-width: 600px) {
+  .fields.three { grid-template-columns: 1fr; }
+}
+
+/* Step 2 starts with the credit score, set apart from Employment by a line. */
+.score-first { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--soft-line); }
+
+/* Step 3: in the middle of the free space, both ways: the screen minus the top bar. */
+.right { --top: 48px; --below: 0px; }
+.main.end { display: flex; flex-direction: column; min-height: calc(100dvh - var(--top) - var(--below)); }
+.main.end > .head { margin-top: auto; padding-top: 24px; }
+.main.end > form { margin-bottom: auto; padding-bottom: 24px; }
+@media (max-width: 999px) { .right { --top: 68px; } }
+@media (max-width: 600px) { .main.end > .head { padding-top: 24px; } }
+
+/* Phones: each Yes/No stays on the same row as the field next to it. */
+.fields.pair { align-items: end; }
+@media (max-width: 600px) {
+  .fields.pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 12px; }
+  .fields.pair > .field { grid-column: auto; }
+  .fields.three { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 12px; }
+  .fields.three > .field { grid-column: auto; }
+  .fields.three > .field:nth-child(3) { grid-column: 1 / -1; }
+  .fields.owner > .field { grid-column: auto; }
+  .fields.pair .radio-row, .fields.three .radio-row { gap: 14px; padding-right: 0; }
+}
+
+/* Phones: a question beside a field stays on one line. */
+@media (max-width: 600px) { .fields.pair .lbl, .fields.three .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+
+/* Yes/No: start where the text inside the fields starts, and leave room before the next field. */
+.radio-row, .fields.three .radio-row, .fields.pair .radio-row { padding-left: 14px; }
+.fields.three .radio-row { padding-right: 28px; }
+@media (max-width: 600px) { .fields.three .radio-row, .fields.pair .radio-row { padding-left: 14px; padding-right: 8px; } }
+
+/* Rows with Yes/No: line up from the top, so an error under one field doesn't move the others.
+   Each label stays on one line, so the fields all start at the same height. */
+.fields.pair, .fields.three, .fields.owner { align-items: start; }
+.fields.pair .lbl, .fields.three .lbl, .fields.owner .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Phone: the country list follows the form's look (round card, brand tint, round search). */
+.iti { --iti-hover-color: var(--brand-primary-tint, #e6eee8); --iti-border-color: var(--border); --iti-dialcode-color: var(--muted-foreground);
+  --iti-arrow-color: var(--muted-foreground); --iti-mobile-popup-margin: 16px; }
+.iti .iti__selected-dial-code { color: var(--foreground); }
+.iti__dropdown-content { margin-top: 6px; padding: 6px; border: 1px solid var(--border) !important; border-radius: 16px; overflow: hidden;
+  background: #fff; box-shadow: 0 10px 30px rgba(16, 24, 40, .12); font-family: var(--brand-font); }
+.iti__search-input { height: 38px; margin-bottom: 6px; padding: 0 14px; border: 1px solid var(--input); border-radius: 999px;
+  background: var(--background); font-size: 14px; outline: none; }
+.iti__search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--brand-primary-tint, #e6eee8); }
+.iti__country-list { max-height: 260px; }
+.iti__country { padding: 8px 10px; border-radius: 10px; font-size: 14px; }
+.iti__country.iti__highlight { background: var(--brand-primary-tint, #e6eee8); }
+.iti__country[aria-selected="true"] .iti__country-name { font-weight: 600; color: var(--primary); }
+.iti--fullscreen-popup.iti--container { background: rgba(43, 42, 37, .45); padding: 16px; }
+.iti--fullscreen-popup .iti__dropdown-content { margin-top: 0; max-height: calc(100% - 32px); }
+.iti--fullscreen-popup .iti__country-list { max-height: none; }
+.iti .iti__search-input { box-sizing: border-box; height: 40px !important; min-height: 40px; flex: none; }
+
+/* Phone: only the flag and arrow get the shaded area (on hover and while the list is open).
+   "+1" sits outside it, with room on both sides. */
+.iti .iti__selected-country, .iti .iti__selected-country:hover { background: transparent !important; }
+.iti .iti__selected-country-primary { height: 100%; padding: 0 10px 0 16px; border-radius: 999px 0 0 999px; transition: background .15s; }
+.iti .iti__selected-country:hover .iti__selected-country-primary,
+.iti .iti__selected-country[aria-expanded="true"] .iti__selected-country-primary { background: var(--brand-primary-tint, #e6eee8) !important; }
+.iti .iti__selected-dial-code { margin-left: 8px; padding-right: 2px; }
+
+/* Step 3: small and quiet. */
+.main.end > .head h1 { font-size: 16px; }
+.main.end > .head p { margin-top: 2px; font-size: 12.5px; max-width: 30ch; }
+.main.end .screen-icon { width: 44px; height: 44px; margin-bottom: 10px; }
+.main.end .screen-icon svg { width: 20px; height: 20px; }
+.main.end .nav { margin-top: 12px; }
+.main.end .nav [data-slot="button"] { flex: none; width: auto; height: 36px; padding: 0 22px; font-size: 13px; }
+html { background: var(--background); }
+
+/* Scrollbars everywhere (page, lists, sheet): no arrows, see-through track, a thin round handle. */
+::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-thumb { background-color: rgba(43, 42, 37, .25); background-clip: padding-box; border: 3px solid transparent; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(43, 42, 37, .45); }
+/* Firefox has no arrows; it only needs the colors. */
+@supports not selector(::-webkit-scrollbar) { * { scrollbar-width: thin; scrollbar-color: rgba(43, 42, 37, .3) transparent; } }

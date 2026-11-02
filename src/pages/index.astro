@@ -34,12 +34,15 @@ const looks = BRANDS.map(({ name, domains, theme }) => ({ name, domains, theme }
     </script>
   </head>
   <body>
+    <!-- One loader in the middle until the form, logo and photo are ready. It uses the brand's
+         colors, which the script above set before the page paints. -->
+    <div class="page-loader" role="status" aria-label="Loading"><span></span></div>
     <div class="shell">
       <aside class="hero">
         <!-- Phones don't show the photo, so they don't download it either. -->
         <picture>
           <source media="(max-width: 999px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACw=" />
-          <img class="art" src="/left-panel-photo.webp" alt="" width="1024" height="1536" />
+          <img class="art" src="/left-panel-photo.webp" alt="" width="1024" height="1536" onload="this.dataset.in=''" onerror="this.dataset.in=''" />
         </picture>
         <LogoMark />
         <p class="eyebrow">

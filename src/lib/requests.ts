@@ -39,8 +39,9 @@ export function stepOneRequest({
     postalCode: values.postalCode,
     consent: values.consent === "yes",
     terms: values.terms === "yes",
-    optIn: values.optIn === "yes",
-    optInPhone: values.optIn === "yes",
+    // The one consent box includes offers by SMS and email, so it is the opt-in too.
+    optIn: values.consent === "yes",
+    optInPhone: values.consent === "yes",
   };
 }
 

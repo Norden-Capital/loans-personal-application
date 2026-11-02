@@ -89,6 +89,23 @@ const FR: Record<string, string> = {
   "Terms": "Conditions",
   "and": "et",
   "Privacy Policy": "Politique de confidentialité",
+  "Terms and Conditions": "Conditions générales",
+  "Enter your monthly income": "Entrez votre revenu mensuel",
+  "Monthly income": "Revenu mensuel",
+  "Before tax": "Avant impôt",
+  "Direct deposit?": "Dépôt direct?",
+  "660 and up": "660 et plus",
+  "560 to 659": "560 à 659",
+  "Under 560": "Moins de 560",
+  "That's OK": "Pas de souci",
+  "Last updated: soon": "Dernière mise à jour : bientôt",
+  "The text will go here.": "Le texte sera ajouté ici.",
+  "I consent to receive SMS communications from {brand} regarding my loan application, contract, and funding notifications. I acknowledge that providing this consent is necessary to complete my loan application and to receive funds via e-Transfer.":
+    "J'accepte de recevoir des SMS de {brand} au sujet de ma demande de prêt, de mon contrat et du versement des fonds. Je reconnais que ce consentement est nécessaire pour compléter ma demande de prêt et recevoir les fonds par virement Interac.",
+  "In addition, I consent that {brand} may share my application and IBV (instant banking verification) with its authorized partners.":
+    "De plus, j'accepte que {brand} partage ma demande et ma vérification bancaire instantanée (IBV) avec ses partenaires autorisés.",
+  "Lastly, I agree to receive promotional SMS messages and emails from {brand} and its authorized partners. I understand that I may withdraw my consent or unsubscribe from promotional communications at any time.":
+    "Enfin, j'accepte de recevoir des SMS et des courriels promotionnels de {brand} et de ses partenaires autorisés. Je comprends que je peux retirer mon consentement ou me désabonner des communications promotionnelles en tout temps.",
   "Send me offers by email and text. (Optional)": "Envoyez-moi des offres par courriel et texto. (Facultatif)",
   "Employment": "Emploi",
   "What is your current employment situation?": "Quelle est votre situation d'emploi?",
@@ -117,6 +134,7 @@ const FR: Record<string, string> = {
   "5 years or more": "5 ans ou plus",
   "Next pay date": "Prochaine paie",
   "Choose a date.": "Choisissez une date.",
+  "Choose a date": "Choisir une date",
   "How often do you get paid?": "À quelle fréquence êtes-vous payé?",
   // French labels already say it all, so the small line under them is empty.
   "Weekly": "Chaque semaine",
