@@ -1,5 +1,6 @@
 import { isOwner, isWorking, type PhoneState, type Values } from "@/lib/formRules";
 import type { Lang } from "@/lib/i18n";
+import { tracking } from "@/lib/tracking";
 
 /**
  * The two messages the LMS expects (ApplyDtos.StepOne and StepTwo). The form's
@@ -19,12 +20,8 @@ export function stepOneRequest({
   lang: Lang;
 }) {
   const n = phone.national;
-  const params = new URLSearchParams(location.search);
   const extra: Record<string, string> = {};
-  for (const key of ["source", "medium", "campaign", "content", "term"]) {
-    const value = params.get(`utm_${key}`);
-    if (value) extra[`aff_utm_${key}`] = value;
-  }
+  for (const [key, value] of Object.entries(tracking())) extra[`aff_utm_${key}`] = value;
   return {
     stepToken,
     language: lang,

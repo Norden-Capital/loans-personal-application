@@ -31,6 +31,7 @@ import {
 } from "@/lib/formRules";
 import { translate, type Lang } from "@/lib/i18n";
 import { stepOneRequest, stepTwoRequest } from "@/lib/requests";
+import { rememberTracking } from "@/lib/tracking";
 import { countVisit } from "@/lib/visit";
 
 /** Astro first renders the form to HTML on the server, where useLayoutEffect only warns. */
@@ -85,6 +86,7 @@ export function ApplyForm() {
 
   // The language was already chosen before the page painted; the brand depends on the address.
   useBrowserLayoutEffect(() => {
+    rememberTracking();
     if (document.documentElement.lang === "fr") setLang("fr");
     setLogo(brandForHost(location.hostname).logo);
     setDates({ max: yearsAgo(18), min: yearsAgo(99) });

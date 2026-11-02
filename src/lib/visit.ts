@@ -1,3 +1,5 @@
+import { tracking } from "@/lib/tracking";
+
 /**
  * Tells the LMS someone opened the form, for the visitors count on Leads
  * Overview. The browser keeps a random number, so a refresh or a second visit
@@ -15,7 +17,7 @@ export function countVisit() {
     // Storage blocked: still counted, just not told apart from a refresh.
     visitorId = crypto.randomUUID();
   }
-  const source = new URLSearchParams(location.search).get("utm_source");
+  const source = tracking().source ?? null;
   fetch("/api/visit", {
     method: "POST",
     headers: { "content-type": "application/json" },
