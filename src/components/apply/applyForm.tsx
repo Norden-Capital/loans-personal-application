@@ -31,6 +31,7 @@ import {
 } from "@/lib/formRules";
 import { translate, type Lang } from "@/lib/i18n";
 import { stepOneRequest, stepTwoRequest } from "@/lib/requests";
+import { countVisit } from "@/lib/visit";
 
 /** Astro first renders the form to HTML on the server, where useLayoutEffect only warns. */
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -88,6 +89,8 @@ export function ApplyForm() {
     setLogo(brandForHost(location.hostname).logo);
     setDates({ max: yearsAgo(18), min: yearsAgo(99) });
   }, []);
+
+  useEffect(countVisit, []);
 
   function switchLanguage(next: Lang) {
     document.documentElement.lang = next;
