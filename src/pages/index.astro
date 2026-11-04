@@ -1,34 +1,53 @@
 ---
 import { ApplyForm } from "@/components/apply/applyForm";
 import { LogoMark } from "@/components/apply/logoMark";
-import { BRANDS } from "@/lib/brands";
+import { BRANDS, brandVar } from "@/lib/brands";
 import "@/styles/global.css";
 
-const looks = BRANDS.map(({ name, domains, theme }) => ({ name, domains, theme }));
+const looks = BRANDS.map(({ id, name, domains, logo, photo, theme }) => ({
+  id,
+  name,
+  domains,
+  logo,
+  photo,
+  vars: Object.entries(theme).map(([key, value]) => [brandVar(key), value]),
+}));
+// The first brand's look, written into the page itself, so it shows even before the script below.
+const first = looks[0].vars.map(([name, value]) => `${name}:${value}`).join(";");
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" style={first}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Apply</title>
+    <!-- The tab icon: the first brand's, and the script below swaps in the right brand's. -->
+    <link rel="icon" type="image/svg+xml" href={looks[0].logo ?? undefined} />
     <script is:inline define:vars={{ looks }}>
       // Runs before the page paints, so the right brand and language show from the start.
+      // Same choice as brandForHost in lib/brands.ts: the address, else ?brand= on other addresses.
       const host = location.hostname.toLowerCase();
+      const asked = new URLSearchParams(location.search).get("brand");
       const brand =
-        looks.find((b) => b.domains.some((d) => host === d || host.endsWith("." + d))) ?? looks[0];
+        looks.find((b) => b.domains.some((d) => host === d || host.endsWith("." + d))) ??
+        looks.find((b) => b.id === asked) ??
+        looks[0];
       const root = document.documentElement;
-      const t = brand.theme;
-      root.style.setProperty("--brand-primary", t.primary);
-      root.style.setProperty("--brand-primary-hover", t.primaryHover);
-      root.style.setProperty("--brand-primary-tint", t.primaryTint);
-      root.style.setProperty("--brand-title-accent", t.titleAccent);
-      root.style.setProperty("--brand-step", t.step);
-      root.style.setProperty("--brand-background", t.background);
-      root.style.setProperty("--brand-field-radius", t.fieldRadius);
-      root.style.setProperty("--brand-font", t.font);
+      for (const [name, value] of brand.vars) root.style.setProperty(name, value);
+      root.dataset.brand = brand.id;
+      root.dataset.photo = brand.photo;
+      if (brand.logo) {
+        root.dataset.logo = "";
+        root.style.setProperty("--brand-logo", `url("${brand.logo}")`);
+        const preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "image";
+        preload.href = brand.logo;
+        document.head.append(preload);
+        document.querySelector("link[rel=icon]").href = brand.logo;
+      }
       document.title = "Apply · " + brand.name;
       if (new URLSearchParams(location.search).get("lang") === "fr") root.lang = "fr";
     </script>
@@ -39,11 +58,18 @@ const looks = BRANDS.map(({ name, domains, theme }) => ({ name, domains, theme }
     <div class="page-loader" role="status" aria-label="Loading"><span></span></div>
     <div class="shell">
       <aside class="hero">
-        <!-- Phones don't show the photo, so they don't download it either. -->
-        <picture>
-          <source media="(max-width: 999px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACw=" />
-          <img class="art" src="/left-panel-photo.webp" alt="" width="1024" height="1536" onload="this.dataset.in=''" onerror="this.dataset.in=''" />
-        </picture>
+        <img class="art" alt="" width="1024" height="1536" onload="this.dataset.in=''" onerror="this.dataset.in=''" />
+        <script is:inline>
+          // The brand's own photo, picked by the first script. Phones don't show it, so they
+          // only download it if the window grows to computer size.
+          {
+            const art = document.querySelector(".hero .art");
+            const wide = matchMedia("(min-width: 1000px)");
+            const load = () => wide.matches && !art.src && (art.src = document.documentElement.dataset.photo);
+            load();
+            wide.addEventListener("change", load);
+          }
+        </script>
         <LogoMark />
         <p class="eyebrow">
           <span data-only="en">Personal loan</span>

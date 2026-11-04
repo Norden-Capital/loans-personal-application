@@ -76,7 +76,6 @@ async function post(url: string, body: unknown) {
 
 export function ApplyForm() {
   const [lang, setLang] = useState<Lang>("en");
-  const [logo, setLogo] = useState<string | null>(null);
   const [brandName, setBrandName] = useState("");
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState(1500);
@@ -108,9 +107,7 @@ export function ApplyForm() {
   useBrowserLayoutEffect(() => {
     rememberTracking();
     if (document.documentElement.lang === "fr") setLang("fr");
-    const brand = brandForHost(location.hostname);
-    setLogo(brand.logo);
-    setBrandName(brand.name);
+    setBrandName(brandForHost(location.hostname, location.search).name);
     setReady(true);
     setDates({ max: yearsAgo(18), min: yearsAgo(99), today: yearsAgo(0), soon: daysAhead(60) });
   }, []);
@@ -146,11 +143,12 @@ export function ApplyForm() {
   }
 
   // Each step's line fills with the share of its visible questions answered correctly.
+  // Step 2 stays empty until it is reached: some of its questions start with an answer.
   const fill = useMemo(() => {
     const share = (fields: string[]) =>
       (fields.filter((field) => !problemWith(field, values, phone)).length / fields.length) * 100;
-    return [share(STEP_ONE_FIELDS), share(stepTwoOrder(values)), 0];
-  }, [values, phone]);
+    return [share(STEP_ONE_FIELDS), step >= 2 ? share(stepTwoOrder(values)) : 0, 0];
+  }, [values, phone, step]);
 
   function go(next: number) {
     setStep(next);
@@ -244,7 +242,7 @@ export function ApplyForm() {
       <div className="top-sticky">
         <div className="inner">
           <div className="topbar-in">
-            <LogoMark logo={logo} small />
+            <LogoMark name={brandName} small />
             <LanguageSwitch lang={lang} onChange={switchLanguage} />
           </div>
         </div>
