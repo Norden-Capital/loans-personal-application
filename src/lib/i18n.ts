@@ -98,8 +98,7 @@ const FR: Record<string, string> = {
   "560 to 659": "560 à 659",
   "Under 560": "Moins de 560",
   "That's OK": "Pas de souci",
-  "Last updated: soon": "Dernière mise à jour : bientôt",
-  "The text will go here.": "Le texte sera ajouté ici.",
+  "Last updated:": "Dernière mise à jour :",
   "I consent to receive SMS communications from {brand} regarding my loan application, contract, and funding notifications. I acknowledge that providing this consent is necessary to complete my loan application and to receive funds via e-Transfer.":
     "J'accepte de recevoir des SMS de {brand} au sujet de ma demande de prêt, de mon contrat et du versement des fonds. Je reconnais que ce consentement est nécessaire pour compléter ma demande de prêt et recevoir les fonds par virement Interac.",
   "In addition, I consent that {brand} may share my application and IBV (instant banking verification) with its authorized partners.":

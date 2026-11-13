@@ -77,6 +77,8 @@ async function post(url: string, body: unknown) {
 export function ApplyForm() {
   const [lang, setLang] = useState<Lang>("en");
   const [brandName, setBrandName] = useState("");
+  /** The brand's website for the legal text: the address in use, or the brand's first one on previews. */
+  const [brandSite, setBrandSite] = useState("");
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState(1500);
   // The Yes/No questions start on the most common answer.
@@ -107,7 +109,10 @@ export function ApplyForm() {
   useBrowserLayoutEffect(() => {
     rememberTracking();
     if (document.documentElement.lang === "fr") setLang("fr");
-    setBrandName(brandForHost(location.hostname, location.search).name);
+    const brand = brandForHost(location.hostname, location.search);
+    setBrandName(brand.name);
+    const host = location.hostname.toLowerCase().replace(/^www./, "");
+    setBrandSite(brand.domains.find((domain) => host === domain) ?? brand.domains[0]);
     setReady(true);
     setDates({ max: yearsAgo(18), min: yearsAgo(99), today: yearsAgo(0), soon: daysAhead(60) });
   }, []);
@@ -489,7 +494,14 @@ export function ApplyForm() {
           ) : null}
         </form>
       </main>
-      <LegalSheet doc={legal} onClose={() => setLegal(null)} say={say} />
+      <LegalSheet
+        doc={legal}
+        onClose={() => setLegal(null)}
+        onOpen={setLegal}
+        say={say}
+        brand={brandName}
+        site={brandSite}
+      />
     </div>
   );
 }
