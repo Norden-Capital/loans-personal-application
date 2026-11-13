@@ -177,11 +177,15 @@ export function problemWith(field: string, values: Values, phone: PhoneState): s
     case "monthlyIncome":
       return needNumber(value) ? "Enter your monthly income." : null;
     case "rentMortgagePayment":
-    case "propertyMortgage":
     case "unsecuredDebtAmount":
       return needNumber(value) ? "Enter an amount (0 if none)." : null;
+    // LeadScout's minimums for owners (the LMS checks the same).
+    case "propertyMortgage":
+      if (needNumber(value)) return "Enter the mortgage left.";
+      return Number(value) < 300 ? "Mortgage must be at least $300." : null;
     case "propertyValue":
-      return needNumber(value) ? "Enter the home value." : null;
+      if (needNumber(value)) return "Enter the home value.";
+      return Number(value) < 1000 ? "Home value must be at least $1,000." : null;
     default:
       return blank(value) ? "Choose one." : null;
   }
