@@ -499,6 +499,7 @@ export function ApplyForm() {
         onClose={() => setLegal(null)}
         onOpen={setLegal}
         say={say}
+        lang={lang}
         brand={brandName}
         site={brandSite}
       />

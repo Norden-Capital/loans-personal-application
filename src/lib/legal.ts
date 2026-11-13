@@ -1,5 +1,9 @@
+import type { Lang } from "@/lib/i18n";
+import { PRIVACY_FR, TERMS_FR } from "@/lib/legalFr";
+
 /**
- * The Terms and Conditions and the Privacy Policy, shown in the legal sheet.
+ * The Terms and Conditions and the Privacy Policy, shown in the legal sheet,
+ * in English (here) and French (legalFr.ts).
  * One text for every brand: {brand} and {site} are filled in for the brand the
  * form is opened on. Everything else that is the same for all brands is in
  * LEGAL_DETAILS below.
@@ -21,6 +25,18 @@ export const LEGAL_DETAILS = {
   // server and database in the US East (Contabo, New York area).
   locations: "Canada (Quebec) and the United States",
 };
+
+/** The details that read differently in French. The rest stays as in LEGAL_DETAILS. */
+const LEGAL_DETAILS_FR: Partial<typeof LEGAL_DETAILS> = {
+  updated: "12 novembre 2026",
+  province: "la Colombie-Britannique",
+  locations: "au Canada (Québec) et aux États-Unis",
+};
+
+/** The company's details in the form's language. */
+export function legalDetails(lang: Lang) {
+  return lang === "fr" ? { ...LEGAL_DETAILS, ...LEGAL_DETAILS_FR } : LEGAL_DETAILS;
+}
 
 /** A paragraph, a small heading, a bullet list, or lines kept together (an address). */
 export type Block = { p: string } | { h: string } | { list: string[] } | { lines: string[] };
@@ -552,11 +568,14 @@ const PRIVACY: Section[] = [
   },
 ];
 
-export const LEGAL_TEXT = { terms: TERMS, privacy: PRIVACY };
+export const LEGAL_TEXT: Record<Lang, { terms: Section[]; privacy: Section[] }> = {
+  en: { terms: TERMS, privacy: PRIVACY },
+  fr: { terms: TERMS_FR, privacy: PRIVACY_FR },
+};
 
 /** Fills {brand}, {site} and the company details into one line of text. {privacyLink} is left for the sheet. */
-export function fillLegal(text: string, brand: string, site: string): string {
-  const values: Record<string, string> = { ...LEGAL_DETAILS, brand, site };
+export function fillLegal(text: string, brand: string, site: string, lang: Lang = "en"): string {
+  const values: Record<string, string> = { ...legalDetails(lang), brand, site };
   const fill = (line: string) => line.replace(/\{(\w+)\}/g, (whole, key: string) => values[key] ?? whole);
   // Twice, because some details hold {site} themselves (the emails).
   return fill(fill(text));
