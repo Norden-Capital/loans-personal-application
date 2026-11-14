@@ -51,6 +51,31 @@ const first = looks[0].vars.map(([name, value]) => `${name}:${value}`).join(";")
       document.title = "Apply · " + brand.name;
       if (new URLSearchParams(location.search).get("lang") === "fr") root.lang = "fr";
     </script>
+    <script is:inline>
+      // Google Analytics 4 and Microsoft Clarity (2026-11-14). One ID each for every brand:
+      // reports split brands by hostname, and Clarity is tagged with the brand too.
+      // Only on the real brand addresses, never on a computer or a preview link.
+      if (document.documentElement.dataset.brand && !/^(localhost|127\.|.*\.vercel\.app$)/.test(location.hostname)) {
+        const GA4 = "G-DNY9ZDPKNH";
+        const CLARITY = "zdq5qjqzqj";
+
+        const ga = document.createElement("script");
+        ga.async = true;
+        ga.src = "https://www.googletagmanager.com/gtag/js?id=" + GA4;
+        document.head.append(ga);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { dataLayer.push(arguments); };
+        gtag("js", new Date());
+        gtag("config", GA4);
+
+        (function (c, l, a, r, i, t, y) {
+          c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+          t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+          y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+        })(window, document, "clarity", "script", CLARITY);
+        clarity("set", "brand", document.documentElement.dataset.brand);
+      }
+    </script>
   </head>
   <body>
     <!-- One loader in the middle until the form, logo and photo are ready. It uses the brand's

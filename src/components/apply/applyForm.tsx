@@ -280,7 +280,7 @@ export function ApplyForm() {
           <p>{say(title[1])}</p>
         </div>
 
-        <form noValidate onSubmit={(event) => event.preventDefault()}>
+        <form noValidate data-clarity-mask="true" onSubmit={(event) => event.preventDefault()}>
           {/* Hidden rather than removed, so going back keeps every answer. */}
           <section hidden={step !== 1}>
             <AmountBox amount={amount} setAmount={setAmount} lang={lang} say={say} />

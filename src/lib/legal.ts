@@ -13,7 +13,7 @@ import { PRIVACY_FR, TERMS_FR } from "@/lib/legalFr";
 
 /** The company's own details, the same on every brand. */
 export const LEGAL_DETAILS = {
-  updated: "November 12, 2026",
+  updated: "November 14, 2026",
   company: "Norden Capital",
   /** Each brand has its own inbox, on the domain the form is opened on (.ca, .online…). */
   supportEmail: "support@{site}",
@@ -28,7 +28,7 @@ export const LEGAL_DETAILS = {
 
 /** The details that read differently in French. The rest stays as in LEGAL_DETAILS. */
 const LEGAL_DETAILS_FR: Partial<typeof LEGAL_DETAILS> = {
-  updated: "12 novembre 2026",
+  updated: "14 novembre 2026",
   province: "la Colombie-Britannique",
   locations: "au Canada (Québec) et aux États-Unis",
 };
@@ -451,6 +451,9 @@ const PRIVACY: Section[] = [
     blocks: [
       {
         p: "Our website may use cookies and similar technologies to support website functionality, remember preferences, measure traffic, and understand how visitors use our services.",
+      },
+      {
+        p: "We use Google Analytics and Microsoft Clarity to see how visitors use the website, such as pages viewed, clicks and scrolling. Clarity hides the answers you type in the application form.",
       },
       {
         p: "Where enabled and permitted, advertising technologies may also help measure campaign performance or personalize advertising.",

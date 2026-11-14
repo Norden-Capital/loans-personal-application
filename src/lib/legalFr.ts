@@ -416,6 +416,9 @@ export const PRIVACY_FR: Section[] = [
         p: "Notre site peut utiliser des témoins (cookies) et des technologies semblables pour assurer son fonctionnement, retenir vos préférences, mesurer l'achalandage et comprendre comment les visiteurs utilisent nos services.",
       },
       {
+        p: "Nous utilisons Google Analytics et Microsoft Clarity pour voir comment les visiteurs utilisent le site, par exemple les pages consultées, les clics et le défilement. Clarity masque les réponses que vous tapez dans le formulaire de demande.",
+      },
+      {
         p: "Lorsqu'elles sont activées et permises, des technologies publicitaires peuvent aussi aider à mesurer la performance des campagnes ou à personnaliser la publicité.",
       },
       {
