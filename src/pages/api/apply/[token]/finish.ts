@@ -9,7 +9,8 @@ const TOKEN = /^[A-Za-z0-9_-]{1,64}$/;
 
 /**
  * Step 2. The LMS sends the lead to LeadScout and says what to show next. It waits
- * up to 20 seconds per send, with one retry, so this waits longer than that.
+ * about 45 seconds at most for LeadScout, retry included (2026-11-20, owner), so
+ * this waits 55: never less than the LMS. Vercel lets the function run 60 (astro.config.mjs).
  */
 export const POST: APIRoute = (context) => {
   const token = context.params.token ?? "";

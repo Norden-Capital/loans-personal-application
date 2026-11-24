@@ -541,6 +541,10 @@ html:not([data-ready]) .page-loader { opacity: 1; visibility: visible; }
 .main.end > .head p { margin-top: 2px; font-size: 12.5px; max-width: 30ch; }
 .main.end .screen-icon { width: 44px; height: 44px; margin-bottom: 10px; }
 .main.end .screen-icon svg { width: 20px; height: 20px; }
+/* Step 2 still waiting after a few seconds: a short line in the brand's color. */
+.main.end > .head .still-working { max-width: none; margin-top: 12px; padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 500;
+  background: var(--brand-primary-tint); color: var(--primary); animation: still-working-in .3s ease-out; }
+@keyframes still-working-in { from { opacity: 0; transform: translateY(4px); } }
 .main.end .nav { margin-top: 12px; }
 .main.end .nav [data-slot="button"] { flex: none; width: auto; height: 36px; padding: 0 22px; font-size: 13px; }
 html { background: var(--background); }

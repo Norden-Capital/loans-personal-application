@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, CircleCheck, Clock, Loader2, Lock } from "lucide-react";
 
 import { AmountBox } from "@/components/apply/amountBox";
@@ -53,6 +53,13 @@ const CONSENT = [
 
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
 
+/** How long step 2 waits before the "still working" line shows under the spinner. */
+const STILL_WORKING_AFTER_MS = 10_000;
+
+/** While the LMS is still sending an earlier try (409): ask again this often, up to 2 minutes. */
+const STILL_SENDING_RETRY_MS = 5_000;
+const STILL_SENDING_TRIES = 24;
+
 type Screen = "waiting" | "alreadyApplied" | "tryLater";
 
 const SCREEN_TITLES: Record<Screen, [string, string]> = {
@@ -102,6 +109,17 @@ export function ApplyForm() {
   const [sending, setSending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen | null>(null);
+  const [stillWorking, setStillWorking] = useState(false);
+  /** Set while step 2 is being sent, so a second click can't send it again. */
+  const finishing = useRef(false);
+
+  // A long wait for LeadScout: after a few seconds, say it is still going.
+  useEffect(() => {
+    setStillWorking(false);
+    if (screen !== "waiting") return;
+    const timer = window.setTimeout(() => setStillWorking(true), STILL_WORKING_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [screen]);
 
   const say = (text: string) => translate(lang, text);
 
@@ -190,13 +208,27 @@ export function ApplyForm() {
 
   /** Step 2's last move: LeadScout's answer picks the screen. */
   async function finish(token: string) {
+    if (finishing.current) return;
+    finishing.current = true;
+    setSending(true);
     setScreen("waiting");
     go(3);
-    const { ok, status, data } = await post(`/api/apply/${token}/finish`, stepTwoRequest(values));
+    let answer = await post(`/api/apply/${token}/finish`, stepTwoRequest(values));
+    // 409: the LMS is still sending an earlier try. Keep waiting, then ask again; it
+    // answers with that try's result once it is done.
+    for (let tries = 0; answer.status === 409 && tries < STILL_SENDING_TRIES; tries++) {
+      await new Promise((resolve) => window.setTimeout(resolve, STILL_SENDING_RETRY_MS));
+      answer = await post(`/api/apply/${token}/finish`, stepTwoRequest(values));
+    }
+    const { ok, status, data } = answer;
     if (ok && data.outcome === "GO_TO_LINK" && data.redirectUrl?.startsWith("https://")) {
-      // Keeps showing the waiting screen until the partner's page opens.
+      // Keeps showing the waiting screen, and blocks clicks, until the partner's page opens.
       window.location.assign(data.redirectUrl);
-    } else if (ok && data.outcome === "ALREADY_APPLIED") {
+      return;
+    }
+    finishing.current = false;
+    setSending(false);
+    if (ok && data.outcome === "ALREADY_APPLIED") {
       setScreen("alreadyApplied");
     } else if (status === 400) {
       setScreen(null);
@@ -278,6 +310,11 @@ export function ApplyForm() {
           {screen ? <ScreenIcon screen={screen} /> : null}
           <h1>{say(title[0])}</h1>
           <p>{say(title[1])}</p>
+          {screen === "waiting" && stillWorking ? (
+            <p className="still-working" role="status">
+              {say("Still working… please don't close this page.")}
+            </p>
+          ) : null}
         </div>
 
         <form noValidate data-clarity-mask="true" onSubmit={(event) => event.preventDefault()}>
@@ -452,7 +489,7 @@ export function ApplyForm() {
 
           {screen === "tryLater" && stepToken ? (
             <div className="nav">
-              <Button type="button" className="next" onClick={() => finish(stepToken)}>
+              <Button type="button" className="next" disabled={sending} onClick={() => finish(stepToken)}>
                 {say("Try again")}
               </Button>
             </div>

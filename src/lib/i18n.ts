@@ -14,6 +14,7 @@ const FR: Record<string, string> = {
   "Last step before your offer": "Dernière étape avant votre offre",
   "Finding your offer...": "Recherche de votre offre...",
   "This can take up to a minute. Please keep this page open.": "Cela peut prendre une minute. Gardez cette page ouverte.",
+  "Still working… please don't close this page.": "Toujours en cours… ne fermez pas cette page.",
   "You already applied.": "Vous avez déjà fait une demande.",
   "We have your application. You don't need to apply again.": "Nous avons votre demande. Pas besoin d'en faire une autre.",
   "We can't finish this right now.": "Nous ne pouvons pas terminer pour le moment.",
