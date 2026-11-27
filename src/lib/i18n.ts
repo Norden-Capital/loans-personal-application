@@ -41,6 +41,7 @@ const FR: Record<string, string> = {
   "Last name": "Nom",
   "Enter last name": "Entrez votre nom",
   "Enter your last name.": "Entrez votre nom.",
+  "Please enter at least 2 letters.": "Entrez au moins 2 lettres.",
   "Email": "Courriel",
   "Enter your email": "Entrez votre courriel",
   "Enter a valid email.": "Entrez un courriel valide.",

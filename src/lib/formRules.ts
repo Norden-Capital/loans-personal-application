@@ -150,7 +150,9 @@ export function problemWith(field: string, values: Values, phone: PhoneState): s
     case "firstName":
       return blank(value) ? "Enter your first name." : null;
     case "lastName":
-      return blank(value) ? "Enter your last name." : null;
+      // LeadScout turns down a last name under 2 characters (2026-11-27).
+      if (blank(value)) return "Enter your last name.";
+      return value!.trim().length < 2 ? "Please enter at least 2 letters." : null;
     case "email":
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value ?? "").trim()) ? null : "Enter a valid email.";
     case "phone":
